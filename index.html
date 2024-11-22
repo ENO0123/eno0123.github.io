@@ -27,6 +27,10 @@
             border-radius: 4px;
             box-sizing: border-box;
         }
+        select {
+            height: 50px;
+            font-size: 16px;
+        }
         button {
             background-color: #06c755;
             color: white;
@@ -46,6 +50,7 @@
             <option value="令和">令和</option>
             <option value="平成">平成</option>
             <option value="昭和">昭和</option>
+            <option value="大正">大正</option>
         </select>
         <input type="number" id="year" placeholder="年" required min="1" max="99">
         <input type="number" id="month" placeholder="月" required min="1" max="12">
@@ -55,7 +60,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            liff.init({ liffId: "YOUR_LIFF_ID" }) // LIFFアプリのIDを設定
+            liff.init({ liffId: "2006599482-pMxXwEm7" }) // LIFFアプリのIDを設定
                 .then(() => {
                     if (!liff.isLoggedIn()) {
                         liff.login();
@@ -96,4 +101,6 @@
     </script>
 </body>
 </html>
+
+
 
