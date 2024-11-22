@@ -96,16 +96,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM fully loaded");
+            console.log("LIFF SDK Version:", liff.getVersion());
+            console.log("Is in LINE Client:", liff.isInClient());
+            console.log("Is logged in:", liff.isLoggedIn());
+
             populateYearOptions();
             populateMonthOptions();
             populateDayOptions();
 
             liff.init({ liffId: "2006599482-pMxXwEm7" })
                 .then(() => {
-                    if (!liff.isLoggedIn()) {
-                        liff.login();
-                    }
                     console.log("LIFF initialized successfully");
+                    if (!liff.isLoggedIn()) {
+                        console.log("User is not logged in. Initiating login...");
+                        liff.login();
+                    } else {
+                        console.log("User is already logged in");
+                    }
                 })
                 .catch((err) => {
                     console.error('LIFF Initialization failed', err);
@@ -124,21 +132,25 @@
 
                 const message = `氏名: ${name}\n生年月日: ${japaneseDate}\n(西暦: ${westernDate})`;
 
+                console.log("Attempting to send message:", message);
+
                 if (liff.isInClient()) {
+                    console.log("Running in LINE client");
                     liff.sendMessages([{
                         type: 'text',
                         text: message
                     }])
                     .then(() => {
-                        console.log('Message sent');
+                        console.log('Message sent successfully');
                         liff.closeWindow();
                     })
                     .catch((error) => {
-                        console.error('Error sending message', error);
+                        console.error('Error sending message:', error);
+                        alert('メッセージの送信に失敗しました。もう一度お試しください。');
                     });
                 } else {
-                    console.log('This is not in LINE client');
-                    alert(message);
+                    console.log('Not running in LINE client');
+                    alert('LINEアプリ内で実行してください。\n\n' + message);
                 }
             });
         });
