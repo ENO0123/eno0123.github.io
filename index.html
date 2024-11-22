@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情報入力フォーム</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/japanese-date-converter@1.0.1/dist/japanese-date-converter.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #06c755;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #05a647;
+        }
+    </style>
+</head>
+<body>
+    <form id="userForm">
+        <input type="text" id="name" placeholder="氏名" required>
+        <select id="era" required>
+            <option value="">元号を選択</option>
+            <option value="令和">令和</option>
+            <option value="平成">平成</option>
+            <option value="昭和">昭和</option>
+        </select>
+        <input type="number" id="year" placeholder="年" required min="1" max="99">
+        <input type="number" id="month" placeholder="月" required min="1" max="12">
+        <input type="number" id="day" placeholder="日" required min="1" max="31">
+        <button type="submit">送信</button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            liff.init({ liffId: "YOUR_LIFF_ID" }) // LIFFアプリのIDを設定
+                .then(() => {
+                    if (!liff.isLoggedIn()) {
+                        liff.login();
+                    }
+                })
+                .catch((err) => {
+                    console.error('LIFF Initialization failed', err);
+                });
+
+            document.getElementById('userForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('name').value;
+                const era = document.getElementById('era').value;
+                const year = document.getElementById('year').value;
+                const month = document.getElementById('month').value;
+                const day = document.getElementById('day').value;
+
+                const japaneseDate = `${era}${year}年${month}月${day}日`;
+                const westernDate = JapaneseDateConverter.toWestern(japaneseDate);
+
+                const message = `氏名: ${name}\n生年月日: ${japaneseDate}\n(西暦: ${westernDate})`;
+
+                if (liff.isInClient()) {
+                    liff.sendMessages([{
+                        type: 'text',
+                        text: message
+                    }]).then(() => {
+                        liff.closeWindow();
+                    }).catch((error) => {
+                        console.error('Error sending message', error);
+                    });
+                } else {
+                    console.log('This is not in LINE client');
+                    alert(message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
