@@ -7,99 +7,38 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://unpkg.com/japanese-date-converter@1.0.1/dist/japanese-date-converter.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
+        /* 既存のスタイル */
+        #logArea {
             background-color: #f0f0f0;
-        }
-        form {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        select {
-            height: 50px;
-            font-size: 16px;
-        }
-        button {
-            background-color: #06c755;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #05a647;
+            padding: 10px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
         }
     </style>
 </head>
 <body>
     <form id="userForm">
-        <input type="text" id="name" placeholder="氏名" required>
-        <select id="era" required>
-            <option value="">元号を選択</option>
-            <option value="令和">令和</option>
-            <option value="平成">平成</option>
-            <option value="昭和">昭和</option>
-            <option value="大正">大正</option>
-        </select>
-        <select id="year" required>
-            <option value="">年を選択</option>
-        </select>
-        <select id="month" required>
-            <option value="">月を選択</option>
-        </select>
-        <select id="day" required>
-            <option value="">日を選択</option>
-        </select>
-        <button type="submit">送信</button>
+        <!-- 既存のフォーム要素 -->
     </form>
+    <div id="logArea"></div>
 
     <script>
-        function populateYearOptions() {
-            const yearSelect = document.getElementById('year');
-            for (let i = 1; i <= 64; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                yearSelect.appendChild(option);
-            }
+        // カスタムログ関数
+        function customLog(message) {
+            console.log(message);
+            const logArea = document.getElementById('logArea');
+            logArea.textContent += message + '\n';
         }
 
-        function populateMonthOptions() {
-            const monthSelect = document.getElementById('month');
-            for (let i = 1; i <= 12; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                monthSelect.appendChild(option);
-            }
-        }
-
-        function populateDayOptions() {
-            const daySelect = document.getElementById('day');
-            for (let i = 1; i <= 31; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = i;
-                daySelect.appendChild(option);
-            }
-        }
+        // 既存の関数（populateYearOptions, populateMonthOptions, populateDayOptions）
 
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("DOM fully loaded");
-            console.log("LIFF SDK Version:", liff.getVersion());
-            console.log("Is in LINE Client:", liff.isInClient());
-            console.log("Is logged in:", liff.isLoggedIn());
+            customLog("DOM fully loaded");
+            customLog("LIFF SDK Version: " + liff.getVersion());
+            customLog("Is in LINE Client: " + liff.isInClient());
+            customLog("Is logged in: " + liff.isLoggedIn());
 
             populateYearOptions();
             populateMonthOptions();
@@ -107,16 +46,16 @@
 
             liff.init({ liffId: "2006599482-pMxXwEm7" })
                 .then(() => {
-                    console.log("LIFF initialized successfully");
+                    customLog("LIFF initialized successfully");
                     if (!liff.isLoggedIn()) {
-                        console.log("User is not logged in. Initiating login...");
+                        customLog("User is not logged in. Initiating login...");
                         liff.login();
                     } else {
-                        console.log("User is already logged in");
+                        customLog("User is already logged in");
                     }
                 })
                 .catch((err) => {
-                    console.error('LIFF Initialization failed', err);
+                    customLog('LIFF Initialization failed: ' + err.message);
                 });
 
             document.getElementById('userForm').addEventListener('submit', (e) => {
@@ -132,24 +71,25 @@
 
                 const message = `氏名: ${name}\n生年月日: ${japaneseDate}\n(西暦: ${westernDate})`;
 
-                console.log("Attempting to send message:", message);
+                customLog("Attempting to send message: " + message);
 
                 if (liff.isInClient()) {
-                    console.log("Running in LINE client");
+                    customLog("Running in LINE client");
                     liff.sendMessages([{
                         type: 'text',
                         text: message
                     }])
                     .then(() => {
-                        console.log('Message sent successfully');
+                        customLog('Message sent successfully');
+                        alert('メッセージが送信されました。');
                         liff.closeWindow();
                     })
                     .catch((error) => {
-                        console.error('Error sending message:', error);
-                        alert('メッセージの送信に失敗しました。もう一度お試しください。');
+                        customLog('Error sending message: ' + error.message);
+                        alert('メッセージの送信に失敗しました。エラー: ' + error.message);
                     });
                 } else {
-                    console.log('Not running in LINE client');
+                    customLog('Not running in LINE client');
                     alert('LINEアプリ内で実行してください。\n\n' + message);
                 }
             });
