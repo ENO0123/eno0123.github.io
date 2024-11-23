@@ -1,108 +1,100 @@
-'use client'
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情報入力フォーム</title>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://unpkg.com/japanese-date-converter@1.0.1/dist/japanese-date-converter.min.js"></script>
+    <style>
+        /* 既存のスタイル */
+        #logArea {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <form id="userForm">
+        <!-- 既存のフォーム要素 -->
+    </form>
+    <div id="logArea"></div>
 
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { generateJapaneseYears, generateMonths, generateDays } from '../utils/japaneseEra'
+    <script>
+        // カスタムログ関数
+        function customLog(message) {
+            console.log(message);
+            const logArea = document.getElementById('logArea');
+            logArea.textContent += message + '\n';
+        }
 
-declare global {
-  interface Window {
-    liff: any;
-  }
-}
+        // 既存の関数（populateYearOptions, populateMonthOptions, populateDayOptions）
 
-export default function UserInfoForm() {
-  const [name, setName] = useState('')
-  const [year, setYear] = useState('')
-  const [month, setMonth] = useState('')
-  const [day, setDay] = useState('')
-  const [isLiffInitialized, setIsLiffInitialized] = useState(false)
+        document.addEventListener('DOMContentLoaded', () => {
+            customLog("DOM fully loaded");
+            customLog("LIFF SDK Version: " + liff.getVersion());
+            customLog("Is in LINE Client: " + liff.isInClient());
+            customLog("Is logged in: " + liff.isLoggedIn());
 
-  useEffect(() => {
-    import('@line/liff').then((liff) => {
-      liff.init({ liffId: '2006599482-pMxXwEm7' }).then(() => {
-        setIsLiffInitialized(true)
-      }).catch((error: Error) => {
-        console.error('LIFF initialization failed', error)
-      })
-    })
-  }, [])
+            populateYearOptions();
+            populateMonthOptions();
+            populateDayOptions();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!isLiffInitialized) {
-      console.error('LIFF is not initialized')
-      return
-    }
+            liff.init({ liffId: "2006599482-pMxXwEm7" })
+                .then(() => {
+                    customLog("LIFF initialized successfully");
+                    if (!liff.isLoggedIn()) {
+                        customLog("User is not logged in. Initiating login...");
+                        liff.login();
+                    } else {
+                        customLog("User is already logged in");
+                    }
+                })
+                .catch((err) => {
+                    customLog('LIFF Initialization failed: ' + err.message);
+                });
 
-    const message = `利用者名: ${name}\n生年月日: ${year}年${month}月${day}日`
-    try {
-      await window.liff.sendMessages([{ type: 'text', text: message }])
-      alert('情報が送信されました')
-    } catch (error) {
-      console.error('Failed to send message', error)
-      alert('メッセージの送信に失敗しました')
-    }
-  }
+            document.getElementById('userForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('name').value;
+                const era = document.getElementById('era').value;
+                const year = document.getElementById('year').value;
+                const month = document.getElementById('month').value;
+                const day = document.getElementById('day').value;
 
-  const years = generateJapaneseYears()
-  const months = generateMonths()
-  const days = generateDays()
+                const japaneseDate = `${era}${year}年${month}月${day}日`;
+                const westernDate = JapaneseDateConverter.toWestern(japaneseDate);
 
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">利用者情報入力</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="name">利用者名</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
-        <div>
-          <Label>生年月日</Label>
-          <div className="grid grid-cols-3 gap-2">
-            <Select value={year} onValueChange={setYear} required>
-              <SelectTrigger>
-                <SelectValue placeholder="年" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((y) => (
-                  <SelectItem key={y.value} value={y.value}>
-                    {y.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={month} onValueChange={setMonth} required>
-              <SelectTrigger>
-                <SelectValue placeholder="月" />
-              </SelectTrigger>
-              <SelectContent>
-                {months.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
-                    {m.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={day} onValueChange={setDay} required>
-              <SelectTrigger>
-                <SelectValue placeholder="日" />
-              </SelectTrigger>
-              <SelectContent>
-                {days.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>
-                    {d.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Button type="submit" disabled={!isLiffInitialized}>送信</Button>
-      </form>
-    </div>
-  )
-}
+                const message = `氏名: ${name}\n生年月日: ${japaneseDate}\n(西暦: ${westernDate})`;
+
+                customLog("Attempting to send message: " + message);
+
+                if (liff.isInClient()) {
+                    customLog("Running in LINE client");
+                    liff.sendMessages([{
+                        type: 'text',
+                        text: message
+                    }])
+                    .then(() => {
+                        customLog('Message sent successfully');
+                        alert('メッセージが送信されました。');
+                        liff.closeWindow();
+                    })
+                    .catch((error) => {
+                        customLog('Error sending message: ' + error.message);
+                        alert('メッセージの送信に失敗しました。エラー: ' + error.message);
+                    });
+                } else {
+                    customLog('Not running in LINE client');
+                    alert('LINEアプリ内で実行してください。\n\n' + message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
 
